@@ -1,0 +1,25 @@
+- name: Download CRI-O repo - 1
+  become: true
+  get_url:
+    url: '{{ REPO_URL }}'
+    dest: /etc/yum.repos.d/devel:kubic:libcontainers:stable.repo
+    mode: '0644'
+
+- name: Download CRI-O repo - 2
+  become: true
+  get_url:
+    url: '{{ CRIO_REPO_URL }}'
+    dest: /etc/yum.repos.d/devel:kubic:libcontainers:stable:cri-o:{{ CRIO_VERSION }}.repo
+    mode: '0644'
+
+- name: Install CRI-O via yum
+  become: true
+  yum:
+    name: 
+      - cri-o
+
+- name: Enable CRI-O systemd service
+  systemd:
+    name: crio
+    state: started
+    enabled: yes

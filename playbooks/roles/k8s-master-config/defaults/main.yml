@@ -1,0 +1,9 @@
+pod_network_cidr: "10.1.0.0/16"
+kubeadm_init_output_file: "/root/kubadm_init.log"
+
+K8S_USERNAME: "k8s"
+K8S_GROUPNAME: "k8s"
+K8S_UID: 1099
+K8S_GID: 1099
+
+CNI_URL: "https://raw.githubusercontent.com/projectcalico/calico/v3.24.3/manifests/calico.yaml"

@@ -1,0 +1,31 @@
+all:
+  vars:
+    ansible_port: 22
+    ansible_user: root
+    ansible_password: example
+
+  hosts:
+    k8s-master:
+      ansible_host: 192.168.1.100
+    k8s-node1:
+      ansible_host: 192.168.1.101
+    k8s-node2:
+      ansible_host: 192.168.1.102
+    k8s-node3:
+      ansible_host: 192.168.1.103
+
+  children:
+    k8s:
+      hosts:
+        k8s-master:
+        k8s-node1:
+        k8s-node2:
+        k8s-node3:
+    node:
+      hosts:
+        k8s-node1:
+        k8s-node2:
+        k8s-node3:
+    master:
+      hosts:
+        k8s-master:

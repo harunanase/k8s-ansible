@@ -1,0 +1,73 @@
+- name: Master Node - kubeadm init
+  shell: kubeadm init --pod-network-cidr={{ pod_network_cidr }} &> {{ kubeadm_init_output_file }}
+
+- name: Master Node - Register kubeadm join command
+  register: kubeadm_init_cmd
+  shell: tail -2 {{ kubeadm_init_output_file }}
+
+- name: Master Node - Get kubeadm init info store path
+  set_fact:
+    kubeadm_init_file: '{{ lookup("env", "PWD") }}/kubeadm-init-info.md'
+
+- name: Master Node - Write kubeadm init info to local via template
+  delegate_to: localhost
+  run_once: True
+  template:
+    src: k8s-master-init-info.md.j2
+    dest: "{{ kubeadm_init_file }}"
+    mode: "0400"
+
+- name: Master Node - Enable and Start kubelet
+  systemd:
+    name: kubelet
+    state: started
+    enabled: true
+
+- name: Master Node - Create kubernetes group
+  group:
+    name: "{{ K8S_GROUPNAME }}"
+    gid: "{{ K8S_GID }}"
+
+- name: Mater Node - Create kubernetes user
+  user:
+    name: "{{ K8S_USERNAME }}"
+    uid: "{{ K8S_UID }}"
+    group: "{{ K8S_GROUPNAME }}"
+    create_home: yes
+    system: yes
+    shell: /sbin/nologin
+
+- name: Master Node - Create .kube directory
+  file:
+    path: /home/{{ K8S_USERNAME }}/.kube
+    state: directory
+    mode: '0755'
+    owner: '{{ K8S_USERNAME }}'
+    group: '{{ K8S_GROUPNAME }}'
+    
+- name: Master Node - Config admin.conf
+  copy:
+    remote_src: yes
+    src: /etc/kubernetes/admin.conf
+    dest: /home/{{ K8S_USERNAME }}/.kube/config
+    mode: '0644'
+    owner: '{{ K8S_USERNAME }}'
+    group: '{{ K8S_GROUPNAME }}'
+
+- name: Master Node - Install bash-completion
+  yum:
+    name:
+      - bash-completion
+    state: present
+
+- name: Master Node - Config kubelet completion
+  lineinfile:
+    path: /home/{{ K8S_USERNAME }}/.bashrc
+    line: 'source <(kubectl completion bash)'
+    create: yes
+
+- name: Master Node - Install CNI
+  become: yes
+  become_method: sudo
+  become_user: "{{ K8S_USERNAME }}"
+  shell: kubectl apply -f {{ CNI_URL }}
