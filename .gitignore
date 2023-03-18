@@ -1,2 +1,3 @@
 /.cache/
 /playbooks/collections/*
+inventory/pve.yml
