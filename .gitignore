@@ -1,3 +1,4 @@
 /.cache/
 /playbooks/collections/*
 inventory/pve.yml
+kubeadm-init-info.md
