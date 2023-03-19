@@ -15,3 +15,8 @@
     kubeadm_content: '{{ lookup("file", kubeadm_info_file_path) }}'
   roles:
     - role: k8s-slave-config
+
+- name: Install k9s
+  hosts: master
+  roles:
+    - role: k9s-install

@@ -1,0 +1,18 @@
+- name: Create k9s directory
+  file:
+    path: /opt/k9s
+    state: directory
+    mode: '0755'
+
+- name: Download k9s binary
+  unarchive:
+    src: '{{ K9S_URL }}'
+    dest: /opt/k9s
+    remote_src: yes
+    mode: '0755'
+
+- name: Create symbolic link
+  file:
+    src: "/opt/k9s/k9s"
+    dest: "/usr/bin/k9s"
+    state: link
