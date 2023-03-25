@@ -49,3 +49,11 @@
       - kubeadm
       - kubectl
     disable_excludes: kubernetes
+
+- name: Reboot all nodes and master
+  reboot:
+
+- name: Enable kubelet
+  systemd:
+    name: kubelet
+    enabled: true
