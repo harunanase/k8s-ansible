@@ -1,0 +1,22 @@
+- name: Install k8s
+  hosts: all
+  roles:
+    - role: apt-k8s-install
+
+- name: Config Master Node
+  hosts: master
+  roles:
+    - role: apt-k8s-master-config
+
+- name: Config Slave Nodes
+  hosts: node
+  vars:
+    kubeadm_info_file_path: '{{ lookup("env", "PWD") }}/kubeadm-init-info.md'
+    kubeadm_content: '{{ lookup("file", kubeadm_info_file_path) }}'
+  roles:
+    - role: apt-k8s-slave-config
+
+- name: Install k9s
+  hosts: master
+  roles:
+    - role: k9s-install
