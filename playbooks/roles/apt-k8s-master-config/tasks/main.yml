@@ -85,3 +85,24 @@
   shell: |
     kubectl create -f /tmp/{{ CNI_FILE }}
     kubectl -n kube-system rollout restart deployment coredns
+
+- name: Master Node - Download metrics server file
+  get_url:
+    url: '{{ METRICS_URL }}/{{ METRICS_FILE }}'
+    dest: '/tmp/{{ METRICS_FILE }}'
+    mode: '0644'
+
+- name: Master Node - Enable insecure tls at metrics server
+  lineinfile:
+    path: '/tmp/{{ METRICS_FILE }}'
+    insertafter: '--metric-resolution'
+    line: '        - --kubelet-insecure-tls'
+    firstmatch: true
+    state: present
+
+- name: Master Node - Install metrics server
+  become: yes
+  become_method: sudo
+  become_user: "{{ K8S_USERNAME }}"
+  shell: |
+    kubectl apply -f /tmp/{{ METRICS_FILE }}
