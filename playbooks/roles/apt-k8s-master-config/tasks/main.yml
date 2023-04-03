@@ -34,8 +34,7 @@
     uid: "{{ K8S_UID }}"
     group: "{{ K8S_GROUPNAME }}"
     create_home: yes
-    system: yes
-    shell: /sbin/nologin
+    shell: /bin/bash
 
 - name: Master Node - Create .kube directory
   file:
@@ -106,3 +105,13 @@
   become_user: "{{ K8S_USERNAME }}"
   shell: |
     kubectl apply -f /tmp/{{ METRICS_FILE }}
+
+- name: Get helm install script
+  get_url:
+    url: "{{ HELM_URL }}"
+    dest: /tmp/get_helm.sh
+    mode: '0700'
+
+- name: Install helm
+  shell: |
+    /tmp/get_helm.sh

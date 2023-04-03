@@ -1,0 +1,7 @@
+- name: Post-install - Restart CoreDNS at master node
+  become: yes
+  become_method: sudo
+  become_user: "{{ K8S_USERNAME }}"
+  shell: |
+    while $(kubectl get pods -n kube-flannel -l app=flannel -o 'jsonpath={..status.conditions[?(@.type=="Ready")].status}' 2> /dev/null | grep -q False); ret=$?; [ $ret -eq 0 ]; do echo "waiting for all pods of kube-flannel ready..." && sleep 1; done
+    kubectl -n kube-system rollout restart deployment coredns

@@ -11,3 +11,5 @@ CNI_URL: "https://github.com/flannel-io/flannel/releases/latest/download"
 
 METRICS_FILE: "components.yaml"
 METRICS_URL: "https://github.com/kubernetes-sigs/metrics-server/releases/latest/download"
+
+HELM_URL: "https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3"

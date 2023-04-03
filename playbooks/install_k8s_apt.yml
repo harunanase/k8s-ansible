@@ -20,3 +20,8 @@
   hosts: master
   roles:
     - role: k9s-install
+
+- name: Master node post-install
+  hosts: master
+  roles:
+    - role: apt-k8s-master-post-install
