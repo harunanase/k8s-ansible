@@ -1,0 +1,7 @@
+K8S_USERNAME: "k8s"
+OPENELB_VIP_RANGE: "192.168.91.200-192.168.91.250"
+
+METRICS_FILE: "components.yaml"
+METRICS_URL: "https://github.com/kubernetes-sigs/metrics-server/releases/latest/download"
+
+HELM_URL: "https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3"

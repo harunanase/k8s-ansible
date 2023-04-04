@@ -1,0 +1,106 @@
+- name: Post-install - Restart CoreDNS at master node
+  become: yes
+  become_method: sudo
+  become_user: "{{ K8S_USERNAME }}"
+  shell: |
+    while $(kubectl get pods -n kube-flannel -l app=flannel -o 'jsonpath={..status.conditions[?(@.type=="Ready")].status}' 2> /dev/null | grep -q False); ret=$?; [ $ret -eq 0 ]; do echo "waiting for all pods of kube-flannel ready..." && sleep 1; done
+    kubectl -n kube-system rollout restart deployment coredns
+
+- name: Get helm install script
+  get_url:
+    url: "{{ HELM_URL }}"
+    dest: /tmp/get_helm.sh
+    mode: '0700'
+
+- name: Install helm
+  shell: |
+    /tmp/get_helm.sh
+
+- name: Master Node - Download metrics server file
+  get_url:
+    url: '{{ METRICS_URL }}/{{ METRICS_FILE }}'
+    dest: '/tmp/{{ METRICS_FILE }}'
+    mode: '0644'
+
+- name: Master Node - Enable insecure tls at metrics server
+  lineinfile:
+    path: '/tmp/{{ METRICS_FILE }}'
+    insertafter: '--metric-resolution'
+    line: '        - --kubelet-insecure-tls'
+    firstmatch: true
+    state: present
+
+- name: Master Node - Install metrics server
+  become: yes
+  become_method: sudo
+  become_user: "{{ K8S_USERNAME }}"
+  kubernetes.core.k8s:
+    state: present
+    src: /tmp/{{ METRICS_FILE }}
+
+- name: Add OpenEBS chart repo
+  become: yes
+  become_method: sudo
+  become_user: "{{ K8S_USERNAME }}"
+  kubernetes.core.helm_repository:
+    name: openebs
+    repo_url: "https://openebs.github.io/charts"
+
+- name: Install OpenEBS via helm
+  become: yes
+  become_method: sudo
+  become_user: "{{ K8S_USERNAME }}"
+  kubernetes.core.helm:
+    name: openebs
+    chart_ref: openebs/openebs
+    release_namespace: openebs
+    create_namespace: true
+
+- name: Add OpenELB chart repo
+  become: yes
+  become_method: sudo
+  become_user: "{{ K8S_USERNAME }}"
+  kubernetes.core.helm_repository:
+    name: openelb
+    repo_url: "https://charts.kubesphere.io/stable"
+
+- name: Install OpenELB via helm
+  become: yes
+  become_method: sudo
+  become_user: "{{ K8S_USERNAME }}"
+  kubernetes.core.helm:
+    name: openelb
+    chart_ref: openelb/openelb
+    release_namespace: openelb-system
+    create_namespace: true
+
+- name: Waiting for all openelb pods ready
+  become: yes
+  become_method: sudo
+  become_user: "{{ K8S_USERNAME }}"
+  shell: |
+    while $(kubectl get pods -n openelb-system -l app.kubernetes.io/component=openelb-manager -o 'jsonpath={..status.conditions[?(@.type=="Ready")].status}' 2> /dev/null | grep -q False); ret=$?; [ $ret -eq 0 ]; do echo "waiting for pods of openelb-manager ready..." && sleep 1; done
+    while $(kubectl get pods -n openelb-system -l app=openelb-keepalive-vip -o 'jsonpath={..status.conditions[?(@.type=="Ready")].status}' 2> /dev/null | grep -q False); ret=$?; [ $ret -eq 0 ]; do echo "waiting for all pods of openelb ready..." && sleep 1; done
+
+- name: Apply OpenELB vip pool via kubectl
+  become: yes
+  become_method: sudo
+  become_user: "{{ K8S_USERNAME }}"
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: network.kubesphere.io/v1alpha2
+      kind: Eip
+      metadata:
+        name: vip-eip
+      spec:
+        address: "{{ OPENELB_VIP_RANGE }}"
+        protocol: vip
+
+- name: Master Node - Enable aggregator-routing at kube-apiserver
+  lineinfile:
+    path: '/etc/kubernetes/manifests/kube-apiserver.yaml'
+    insertafter: '- kube-apiserver'
+    line: '    - --enable-aggregator-routing=true'
+    firstmatch: true
+    state: present

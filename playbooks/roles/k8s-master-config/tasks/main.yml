@@ -1,5 +1,5 @@
 - name: Master Node - kubeadm init
-  shell: kubeadm init --pod-network-cidr={{ pod_network_cidr }} &> {{ kubeadm_init_output_file }}
+  shell: 'kubeadm init --pod-network-cidr={{ pod_network_cidr }} > {{ kubeadm_init_output_file }}'
 
 - name: Master Node - Register kubeadm join command
   register: kubeadm_init_cmd
@@ -34,14 +34,13 @@
     uid: "{{ K8S_UID }}"
     group: "{{ K8S_GROUPNAME }}"
     create_home: yes
-    system: yes
-    shell: /sbin/nologin
+    shell: /bin/bash
 
 - name: Master Node - Create .kube directory
   file:
     path: /home/{{ K8S_USERNAME }}/.kube
     state: directory
-    mode: '0755'
+    mode: '0700'
     owner: '{{ K8S_USERNAME }}'
     group: '{{ K8S_GROUPNAME }}'
     
@@ -50,13 +49,13 @@
     remote_src: yes
     src: /etc/kubernetes/admin.conf
     dest: /home/{{ K8S_USERNAME }}/.kube/config
-    mode: '0644'
+    mode: '0600'
     owner: '{{ K8S_USERNAME }}'
     group: '{{ K8S_GROUPNAME }}'
 
 - name: Master Node - Install bash-completion
-  yum:
-    name:
+  apt:
+    pkg:
       - bash-completion
     state: present
 
@@ -66,8 +65,22 @@
     line: 'source <(kubectl completion bash)'
     create: yes
 
+- name: Master Node - Download CNI file
+  get_url:
+    url: '{{ CNI_URL }}/{{ CNI_FILE }}'
+    dest: '/tmp/{{ CNI_FILE }}'
+    mode: '0644'
+      
+- name: Master Node - Modify cidr in CNI file
+  replace:
+    path: '/tmp/{{ CNI_FILE }}'
+    regexp: '10\.244\.0\.0\/16'
+    replace: '{{ pod_network_cidr }}'
+
 - name: Master Node - Install CNI
   become: yes
   become_method: sudo
   become_user: "{{ K8S_USERNAME }}"
-  shell: kubectl apply -f {{ CNI_URL }}
+  kubernetes.core.k8s:
+    state: present
+    src: /tmp/{{ CNI_FILE }}

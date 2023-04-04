@@ -1,5 +1,0 @@
-OS: "CentOS_7"
-
-CRIO_VERSION: "1.24"
-REPO_URL: "https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/{{ OS }}/devel:kubic:libcontainers:stable.repo"
-CRIO_REPO_URL: "https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:{{ CRIO_VERSION }}/{{ OS }}/devel:kubic:libcontainers:stable:cri-o:{{ CRIO_VERSION }}.repo"

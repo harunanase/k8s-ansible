@@ -1,2 +1,0 @@
-- name: Slave nodes - join master node
-  shell: "{{ kubeadm_content }}"
