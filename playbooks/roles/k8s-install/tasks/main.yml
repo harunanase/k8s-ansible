@@ -60,14 +60,14 @@
 
 - name: Add Kubernetes GPG key
   apt_key:
-    id: A362B822F6DEDC652817EA46B53DC80D13EDEF05
-    url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
-    keyring: /etc/apt/keyrings/kubernetes-archive-keyring.gpg
+    id: DE15B14486CD377B9E876E1A234654DA9A296436
+    url: https://pkgs.k8s.io/core:/stable:/v1.28/deb/Release.key
+    keyring: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
 
 - name: Add Kubernetes apt repo
   lineinfile:
     path: /etc/apt/sources.list.d/kubernetes.list
-    line: "deb [signed-by=/etc/apt/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main"
+    line: "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.29/deb/ /"
     create: yes
     mode: '0644'
 
