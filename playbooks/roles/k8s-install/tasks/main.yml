@@ -31,9 +31,6 @@
 - name: Reboot, apply swapoff, modules, and sysctl
   reboot:
 
-- name: Install CRI-O
-  include_tasks: "{{ role_path }}/tasks/tasks.d/install-crio.yml"
-
 - name: Install pre-require apt packages
   apt:
     pkg:
@@ -42,6 +39,7 @@
       - curl
       - python3-pip
       - nfs-common
+      - software-properties-common
     update_cache: true
       
 - name: Install pre-require python packages
@@ -61,15 +59,18 @@
 - name: Add Kubernetes GPG key
   apt_key:
     id: DE15B14486CD377B9E876E1A234654DA9A296436
-    url: https://pkgs.k8s.io/core:/stable:/v1.28/deb/Release.key
+    url: https://pkgs.k8s.io/core:/stable:/v1.31/deb/Release.key
     keyring: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
 
 - name: Add Kubernetes apt repo
   lineinfile:
     path: /etc/apt/sources.list.d/kubernetes.list
-    line: "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.29/deb/ /"
+    line: "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.31/deb/ /"
     create: yes
     mode: '0644'
+
+- name: Install CRI-O
+  include_tasks: "{{ role_path }}/tasks/tasks.d/install-crio.yml"
 
 - name: Install kubelet kubeadm kubectl
   apt:
@@ -78,6 +79,10 @@
       - kubeadm
       - kubectl
     update_cache: true
+
+- name: Upgrade all packages
+  apt:
+    upgrade: full
 
 - name: Reboot all nodes and master
   reboot:

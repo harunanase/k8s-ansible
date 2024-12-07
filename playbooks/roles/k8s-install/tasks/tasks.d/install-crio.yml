@@ -1,37 +1,21 @@
-- name: Config CRI-O repo - 1
+- name: Add CRI-O key
+  become: true
+  shell: curl -fsSL {{ CRIO_REPO_URL }}Release.key | gpg --dearmor -o /etc/apt/trusted.gpg.d/cri-o-apt-keyring.gpg
+
+- name: Config CRI-O repo
   become: true
   lineinfile:
-    path: /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list
-    line: 'deb {{ REPO_URL }} /'
+    path: '/etc/apt/sources.list.d/cri-o.list'
+    line: 'deb [signed-by=/etc/apt/trusted.gpg.d/cri-o-apt-keyring.gpg] {{ CRIO_REPO_URL }} /'
     create: yes
     mode: '0644'
 
-- name: Config CRI-O repo - 2
-  become: true
-  lineinfile:
-    path: '/etc/apt/sources.list.d/devel:kubic:libcontainers:stable:cri-o:{{ CRIO_VERSION }}.list'
-    line: 'deb {{ CRIO_REPO_URL }} /'
-    create: yes
-    mode: '0644'
-
-- name: Add CRI-O key - 1
-  become: true
-  apt_key:
-    url: '{{ CRIO_REPO_URL }}Release.key'
-    state: present
-
-- name: Add CRI-O key - 2
-  become: true
-  apt_key:
-    url: '{{ REPO_URL }}Release.key'
-    state: present
 
 - name: Install CRI-O via apt
   become: true
   apt:
     pkg: 
       - cri-o
-      - cri-o-runc
     update_cache: yes
 
 - name: Enable CRI-O systemd service
