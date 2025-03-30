@@ -1,4 +1,5 @@
 OS: "xUbuntu_22.04"
 
-CRIO_VERSION: "v1.31"
+K8S_REPO_VERSION: "v1.32"
+CRIO_VERSION: "v1.32"
 CRIO_REPO_URL: "https://pkgs.k8s.io/addons:/cri-o:/stable:/{{ CRIO_VERSION }}/deb/"

@@ -58,14 +58,13 @@
 
 - name: Add Kubernetes GPG key
   apt_key:
-    id: DE15B14486CD377B9E876E1A234654DA9A296436
-    url: https://pkgs.k8s.io/core:/stable:/v1.31/deb/Release.key
+    url: "https://pkgs.k8s.io/core:/stable:/{{ K8S_REPO_VERSION }}/deb/Release.key"
     keyring: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
 
 - name: Add Kubernetes apt repo
   lineinfile:
     path: /etc/apt/sources.list.d/kubernetes.list
-    line: "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.31/deb/ /"
+    line: "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/{{ K8S_REPO_VERSION }}/deb/ /"
     create: yes
     mode: '0644'
 
